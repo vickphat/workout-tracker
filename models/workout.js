@@ -1,70 +1,56 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const exerciseSchema = new Schema({
+const workoutSchema = new Schema({
 
-    type: {
-        type: String,
-        enum: ["resistance", "cardio"],
-        required: "Valid options are 'resistance' or 'cardio'",
-    },
-    name: {
+  day: {
+    type: Date,
+    default: () => new Date()
+  },
+  exercises: [
+    {
+      type: {
         type: String,
         trim: true,
-        required: "Enter a name for the exercise",
-    },
-    duration: {
+        required: "Enter an exercise type"
+      },
+      name: {
+        type: String,
+        trim: true,
+        required: "Enter an exercise name"
+      },
+      duration: {
         type: Number,
-        required: "Enter the duration minutes",
-    },
-    weight: {
-        type: Number,
-        required: isRequired("weight"),
-    },
-    reps: {
-        type: Number,
-        required: isRequired("reps"),
-    },
-    sets: {
-        type: Number,
-        required: isRequired("sets"),
-    },
-    distance: {
-        type: Number,
-        required: isRequired("distance"),
-    },
-});
-
-function isRequired(field) {
-    return function () {
-        if (field == "distance") {
-            return this.type === "cardio";
-        } else {
-            return this.type === "resistance";
-        }
-    };
-}
-
-const workoutSchema = new Schema(
-    {
-        day: {
-            type: Date,
-            default: Date.now,
-        },
-        exercises: [exerciseSchema],
-    },
-    {
-        toObject: { virtuals: true },
-        toJSON: { virtuals: true },
+        required: "Enter an exercise duration in minutes"
+      },
+      weight: {
+        type: Number
+      },
+      reps: {
+        type: Number
+      },
+      sets: {
+        type: Number
+      },
+      distance: {
+        type: Number
+      }
     }
+  ]
+},
+  {
+    // Will include virtual properties when data is requested
+    toJSON: {
+      virtuals: true
+    }
+  }
 );
 
+
 workoutSchema.virtual("totalDuration").get(function () {
-    let totalDuration = 0;
-    this.exercises.forEach((el) => {
-        totalDuration += el.duration;
-    });
-    return totalDuration;
+  return this.exercises.reduce((total, exercise) => {
+    return total + exercise.duration;
+  }, 0);
 });
 
 const Workout = mongoose.model("Workout", workoutSchema);
